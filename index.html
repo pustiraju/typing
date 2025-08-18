@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Practice</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl">
+        <h1 class="text-2xl font-bold text-center mb-4">Typing Practice</h1>
+        <div class="mb-4">
+            <label for="timeLimit" class="block text-sm font-medium text-gray-700">Set Time Limit (minutes):</label>
+            <input type="number" id="timeLimit" class="w-24 p-2 border rounded" value="1" min="1" max="5" step="0.5">
+        </div>
+        <p id="sampleText" class="text-lg mb-4 p-4 bg-gray-200 rounded"></p>
+        <textarea id="userInput" class="w-full p-2 border rounded mb-4" rows="4" placeholder="Start typing here..."></textarea>
+        <div class="flex justify-end mb-4">
+            <button id="resetBtn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Reset</button>
+        </div>
+        <div id="results" class="text-center">
+            <p>WPM: <span id="wpm">0</span></p>
+            <p>Accuracy: <span id="accuracy">0%</span></p>
+            <p>Time Remaining: <span id="time">0m 0s</span></p>
+        </div>
+    </div>
+
+    <script>
+        const sampleTextElement = document.getElementById('sampleText');
+        const userInputElement = document.getElementById('userInput');
+        const resetBtn = document.getElementById('resetBtn');
+        const wpmElement = document.getElementById('wpm');
+        const accuracyElement = document.getElementById('accuracy');
+        const timeElement = document.getElementById('time');
+        const timeLimitInput = document.getElementById('timeLimit');
+
+        const sampleTexts = [
+            "The quick brown fox jumps over the lazy dog.",
+            "Typing is a skill that improves with practice.",
+            "A journey of a thousand miles begins with a single step.",
+            "Practice makes perfect, so keep typing every day.",
+            "The early bird catches the worm."
+        ];
+
+        let startTime, timerInterval;
+        let isTyping = false;
+        let timeLimit = 60; // Default time limit in seconds (1 minute)
+
+        function getRandomText() {
+            return sampleTexts[Math.floor(Math.random() * sampleTexts.length)];
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes}m ${remainingSeconds}s`;
+        }
+
+        function startTyping() {
+            if (!isTyping) {
+                timeLimit = parseFloat(timeLimitInput.value) * 60 || 60; // Convert minutes to seconds
+                sampleTextElement.textContent = sampleTexts[0]; // Show first sentence by default
+                userInputElement.value = '';
+                userInputElement.disabled = false;
+                userInputElement.focus();
+                startTime = new Date();
+                isTyping = true;
+                timeLimitInput.disabled = true;
+                timeElement.textContent = formatTime(timeLimit);
+                timerInterval = setInterval(updateTime, 1000);
+            }
+        }
+
+        function resetTyping() {
+            clearInterval(timerInterval);
+            isTyping = false;
+            sampleTextElement.textContent = sampleTexts[0]; // Reset to first sentence
+            userInputElement.value = '';
+            userInputElement.disabled = false;
+            timeLimitInput.disabled = false;
+            wpmElement.textContent = '0';
+            accuracyElement.textContent = '0%';
+            timeElement.textContent = formatTime(parseFloat(timeLimitInput.value) * 60 || 60);
+        }
+
+        function updateTime() {
+            const currentTime = new Date();
+            const timeElapsed = Math.floor((currentTime - startTime) / 1000);
+            const timeRemaining = Math.max(timeLimit - timeElapsed, 0);
+            timeElement.textContent = formatTime(timeRemaining);
+
+            if (timeRemaining <= 0) {
+                clearInterval(timerInterval);
+                isTyping = false;
+                userInputElement.disabled = true;
+                timeLimitInput.disabled = false;
+                calculateResults(); // Final calculation
+            }
+        }
+
+        function calculateResults() {
+            const timeElapsed = Math.min(Math.floor((new Date() - startTime) / 1000), timeLimit);
+            const typedText = userInputElement.value.trim();
+            const sampleText = sampleTextElement.textContent;
+
+            // Calculate WPM
+            const wordsTyped = typedText.split(' ').length;
+            const wpm = timeElapsed > 0 ? Math.round((wordsTyped / timeElapsed) * 60) : 0;
+            wpmElement.textContent = wpm;
+
+            // Calculate Accuracy
+            let correctChars = 0;
+            for (let i = 0; i < Math.min(typedText.length, sampleText.length); i++) {
+                if (typedText[i] === sampleText[i]) correctChars++;
+            }
+            const accuracy = typedText.length > 0 ? Math.round((correctChars / sampleText.length) * 100) : 0;
+            accuracyElement.textContent = `${accuracy}%`;
+        }
+
+        userInputElement.addEventListener('keydown', () => {
+            if (!isTyping) {
+                startTyping();
+            }
+        });
+        userInputElement.addEventListener('input', calculateResults);
+        resetBtn.addEventListener('click', resetTyping);
+        timeLimitInput.addEventListener('change', () => {
+            if (!isTyping) {
+                timeElement.textContent = formatTime(parseFloat(timeLimitInput.value) * 60 || 60);
+            }
+        });
+
+        // Initialize
+        resetTyping();
+    </script>
+</body>
+</html>
