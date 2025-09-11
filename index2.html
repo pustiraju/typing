@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typing Practice</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    #text span { padding: 2px; }
+    .correct { color: green; }
+    .incorrect { color: red; }
+    .current { background: yellow; }
+  </style>
+</head>
+<body>
+  <h1>Typing Practice</h1>
+  <div id="text"></div>
+  <p>Time: <span id="time">60</span>s | WPM: <span id="wpm">0</span> | Accuracy: <span id="accuracy">100</span>% | Errors: <span id="errors">0</span></p>
+  <button id="reset">Reset</button>
+
+  <script>
+    const sampleText = "I have a cure for insomnia. It’s probably worth millions of dollars but I’m giving it to you free. It isn’t warm milk or chamomile tea. It’s list making. List stuff from your life like all your teachers or all the live music you’ve seen or all the Paul Newman movies you’ve watched..";
+    
+    let currentChar = 0, errors = 0, timeLeft = 60, timer = null, started = false;
+
+    const textDiv = document.getElementById("text");
+    const timeSpan = document.getElementById("time");
+    const wpmSpan = document.getElementById("wpm");
+    const accSpan = document.getElementById("accuracy");
+    const errSpan = document.getElementById("errors");
+    const resetBtn = document.getElementById("reset");
+
+    function addText() {
+      textDiv.innerHTML = "";
+      sampleText.split("").forEach(char => {
+        const span = document.createElement("span");
+        span.textContent = char;
+        if (char === " ") span.style.backgroundColor = "#eee";
+        textDiv.appendChild(span);
+      });
+    }
+
+    function highlightCurrent() {
+      [...textDiv.children].forEach((s, i) => {
+        s.classList.remove("current");
+        if (i === currentChar) s.classList.add("current");
+      });
+    }
+
+    function updateStats() {
+      const typed = currentChar;
+      const words = typed / 5;
+      const wpm = Math.round(words * (60 / (60 - timeLeft || 1)));
+      const acc = Math.round(((typed - errors) / typed) * 100) || 100;
+      wpmSpan.textContent = wpm;
+      accSpan.textContent = acc;
+      errSpan.textContent = errors;
+    }
+
+    function reset() {
+      currentChar = 0;
+      errors = 0;
+      timeLeft = 60;
+      started = false;
+      clearInterval(timer);
+      timeSpan.textContent = timeLeft;
+      wpmSpan.textContent = 0;
+      accSpan.textContent = 100;
+      errSpan.textContent = 0;
+      addText();
+      highlightCurrent();
+    }
+
+    function handleKeydown(e) {
+      if (!started) {
+        started = true;
+        timer = setInterval(() => {
+          timeLeft--;
+          timeSpan.textContent = timeLeft;
+          if (timeLeft <= 0) clearInterval(timer);
+        }, 1000);
+      }
+
+      const spans = textDiv.querySelectorAll("span");
+      const currentSpan = spans[currentChar];
+      const expected = currentSpan.textContent;
+
+      if (e.key.length === 1) { // only handle character keys
+        if (e.key.toLowerCase() === expected.toLowerCase()) {
+          currentSpan.classList.add("correct");
+        } else {
+          currentSpan.classList.add("incorrect");
+          errors++;
+        }
+        currentChar++;
+        highlightCurrent();
+        updateStats();
+      } else if (e.key === "Backspace" && currentChar > 0) {
+        currentChar--;
+        const prevSpan = spans[currentChar];
+        if (prevSpan.classList.contains("incorrect")) errors--;
+        prevSpan.classList.remove("correct", "incorrect");
+        highlightCurrent();
+        updateStats();
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      reset();
+      document.addEventListener("keydown", handleKeydown);
+      resetBtn.addEventListener("click", reset);
+    });
+  </script>
+</body>
+</html>
