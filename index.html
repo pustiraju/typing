@@ -6,6 +6,13 @@
   <title>Typing Practice</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+   <style>
+    body { font-family: sans-serif; padding: 20px; }
+    #text span { padding: 2px; }
+    .correct { color: green;  }
+    .incorrect { color: red; }
+    .current { background: yellow; }
+  </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
   <div class="max-w-5xl mx-auto p-6">
@@ -18,36 +25,34 @@
     <!-- Stats -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
       <div class="bg-white p-4 rounded-xl shadow-md text-center">
-        <div id="wpm" class="text-2xl font-bold text-gray-900">0</div>
-        <div class="text-sm text-gray-500">WPM</div>
+               <div class="text-sm text-gray-500">WPM: <span id="wpm">0</span></div>
       </div>
       <div class="bg-white p-4 rounded-xl shadow-md text-center">
-        <div id="accuracy" class="text-2xl font-bold text-gray-900">100%</div>
-        <div class="text-sm text-gray-500">Accuracy</div>
+        <div class="text-sm text-gray-500">Accuracy: <span id="accuracy">100</span>%</div>
       </div>
       <div class="bg-white p-4 rounded-xl shadow-md text-center">
-        <div id="timer" class="text-2xl font-bold text-gray-900">60</div>
-        <div class="text-sm text-gray-500">Time Left</div>
+           <div class="text-sm text-gray-500">Time: <span id="time">60</span>s</div>
       </div>
       <div class="bg-white p-4 rounded-xl shadow-md text-center">
-        <div id="errors" class="text-2xl font-bold text-gray-900">0</div>
-        <div class="text-sm text-gray-500">Errors</div>
+                <div class="text-sm text-gray-500">Errors: <span id="errors">0</span></div>
       </div>
     </div>
 
     <!-- Typing text -->
     <div class="bg-white p-6 rounded-xl shadow-md mb-6 min-h-[150px]">
-      <div id="typing-text" class="text-lg leading-relaxed text-gray-700"></div>
+      <div id="text" class="text-lg leading-relaxed text-gray-700"></div>
     </div>
 
     <!-- Controls -->
     <div class="flex flex-wrap gap-3 mb-6 justify-center">
-      <button id="reset-btn" class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
+      <button id="reset" class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
         Reset
       </button>
     </div>
+  </div>
 
-   
+
+
 <script src="script.js"></script>
 </body>
 </html>

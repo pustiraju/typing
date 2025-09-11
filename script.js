@@ -1,135 +1,200 @@
-// DOM elements
-const wpm = document.getElementById("wpm");
-const accuracy = document.getElementById("accuracy");
-const timer = document.getElementById("timer");
-const errors = document.getElementById("errors");
-const typingText = document.getElementById("typing-text");
-const resetBtn = document.getElementById("reset-btn");
-const body = document.getElementsByTagName("body")[0];
 
-// Text to type
-const text = "To create a custom offline error using JavaScript, first check the user’s internet connection with navigator.onLine. When offline, dynamically display a styled warning message. Add event listeners for network changes, so the message appears automatically when disconnected and disappears once reconnected, ensuring smooth user experience without extra HTML";
+  // Plain ASCII quotes to match keyboard input
+  const sampleText =
+    "I have a cure for insomnia. It's probably worth millions of dollars but I'm giving it to you free. It isn't warm milk or chamomile tea. It's list making. List stuff from your life like all your teachers or all the live music you've seen or all the Paul Newman movies you've watched..";
 
-// State variables
-let letters = text.split(""); // Convert string to array
-let currentPosition = 0; // Track current character index
-let errorCount = 0; // Track errors
-let startTime = null; // Track when typing starts
-let timerInterval = null; // Timer interval ID
-let timeLimit = 60; // 60 seconds timer
+  const TEST_SECONDS = 60;
 
-// Initialize text display
-document.addEventListener("DOMContentLoaded", () => {
-  addText();
-  reset(); // Set initial state
-});
+  const textDiv = document.getElementById("text");
+  const timeSpan = document.getElementById("time");
+  const wpmSpan = document.getElementById("wpm");
+  const accSpan = document.getElementById("accuracy");
+  const errSpan = document.getElementById("errors");
+  const resetBtn = document.getElementById("reset");
 
-// Display text with spans for each character
-function addText() {
-  typingText.innerHTML = letters
-    .map((char, index) => `<span id="char-${index}">${char}</span>`)
-    .join("");
-}
+  // state
+  let currentChar = 0;
+  let errors = 0;
+  let correctChars = 0;
+  let started = false;
+  let finished = false;
+  let startTime = null;
+  let timerInterval = null;
 
-// Count words for WPM calculation
-function countWords(text) {
-  return text
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .length;
-}
+  // normalize common typographic characters to keyboard equivalents
+  function normalizeChar(ch) {
+    if (!ch) return ch;
+    const map = {
+      "\u2018": "'", // left single quote
+      "\u2019": "'", // right single quote
+      "\u201C": '"',
+      "\u201D": '"',
+      "\u2013": "-",
+      "\u2014": "-",
+      "\u00A0": " ",
+    };
+    return map[ch] || ch;
+  }
 
-// Start or reset timer
-function startTimer() {
-  if (timerInterval) clearInterval(timerInterval); // Clear existing timer
-  startTime = new Date();
-  timer.textContent = timeLimit;
-  timerInterval = setInterval(() => {
-    const elapsed = Math.floor((new Date() - startTime) / 1000);
-    const timeLeft = timeLimit - elapsed;
-    timer.textContent = timeLeft > 0 ? timeLeft : 0;
-    if (timeLeft <= 0) {
-      clearInterval(timerInterval);
-      body.removeEventListener("keydown", handleKeydown); // Stop typing
+  function addText() {
+    textDiv.innerHTML = "";
+    sampleText.split("").forEach((char) => {
+      const span = document.createElement("span");
+      span.textContent = char;
+     
+      textDiv.appendChild(span);
+    });
+  }
+
+  function highlightCurrent() {
+    [...textDiv.children].forEach((s, i) => {
+      // s.classList.remove("");  if not need background for typed letter
+      if (i === currentChar) s.classList.add("current");
+    });
+  }
+
+  function updateStats() {
+    // use precise elapsed time while running
+    let elapsedSeconds = 0.001; // avoid division by zero
+    if (started && startTime) {
+      elapsedSeconds = (Date.now() - startTime) / 1000;
+      if (elapsedSeconds < 0.001) elapsedSeconds = 0.001;
     }
-    updateWPM();
-  }, 1000);
-}
+    const elapsedMinutes = elapsedSeconds / 60;
 
-// Update WPM
-function updateWPM() {
-  const elapsedMinutes = (new Date() - startTime) / 1000 / 60;
-  if (elapsedMinutes > 0) {
-    const wordsTyped = countWords(text.slice(0, currentPosition));
-    const wpmValue = Math.round(wordsTyped / elapsedMinutes);
-    wpm.textContent = wpmValue;
-  } else {
-    wpm.textContent = 0;
-  }
-}
+    // gross = all advanced characters, net = only correct characters
+    const grossWPM = Math.round((currentChar / 5) / elapsedMinutes);
+    const netWPM = Math.round((correctChars / 5) / elapsedMinutes);
 
-// Update accuracy
-function updateAccuracy() {
-  const totalTyped = currentPosition + errorCount;
-  if (totalTyped > 0) {
-    const accuracyValue = Math.round(((currentPosition) / totalTyped) * 100);
-    accuracy.textContent = `${accuracyValue}%`;
-  } else {
-    accuracy.textContent = "100%";
-  }
-}
-
-// Reset the practice
-function reset() {
-  currentPosition = 0;
-  errorCount = 0;
-  startTime = null;
-  if (timerInterval) clearInterval(timerInterval);
-  timer.textContent = timeLimit;
-  errors.textContent = 0;
-  wpm.textContent = 0;
-  accuracy.textContent = "100%";
-  addText();
-  body.removeEventListener("keydown", handleKeydown); // Remove old listener
-  body.addEventListener("keydown", handleKeydown); // Add new listener
-}
-
-// Handle keydown events
-function handleKeydown(event) {
-  if (!startTime) startTimer(); // Start timer on first keypress
-
-  if (currentPosition >= letters.length || timer.textContent == "0") return; // Stop if done or time's up
-
-  const currentChar = letters[currentPosition];
-  const currentSpan = document.getElementById(`char-${currentPosition}`);
-
-  if (event.key === currentChar) {
-    // Correct key
-    currentSpan.style.color = "green";
-    currentPosition++;
-    if (currentPosition < letters.length) {
-      document.getElementById(`char-${currentPosition}`).style.backgroundColor = "yellow"; // Highlight next char
-    }
-  } else if (event.key.length === 1) { // Ignore special keys
-    // Incorrect key
-    currentSpan.style.color = "red";
-    errorCount++;
-    errors.textContent = errorCount;
+    // show net WPM as primary (common expectation)
+    wpmSpan.textContent = isFinite(netWPM) ? netWPM : 0;
+    accSpan.textContent = currentChar > 0 ? Math.round((correctChars / currentChar) * 100) : 100;
+    errSpan.textContent = errors;
   }
 
-  updateAccuracy();
-  updateWPM();
-
-  // End practice if all characters typed
-  if (currentPosition >= letters.length) {
+  function finishTest() {
+    if (finished) return;
+    finished = true;
     clearInterval(timerInterval);
-    body.removeEventListener("keydown", handleKeydown);
+
+    // ensure no more keystrokes counted
+    document.removeEventListener("keydown", handleKeydown);
+
+    // final stats — use actual elapsed time but cap to TEST_SECONDS
+    const measuredSeconds = startTime ? Math.min(TEST_SECONDS, (Date.now() - startTime) / 1000) : 0;
+    const minutes = measuredSeconds > 0 ? measuredSeconds / 60 : 1;
+
+    const finalGrossWPM = Math.round((currentChar / 5) / minutes);
+    const finalNetWPM = Math.round((correctChars / 5) / minutes);
+    const finalAcc = currentChar > 0 ? Math.round((correctChars / currentChar) * 100) : 100;
+
+    alert(
+      `Time's up!\n` +
+      `WPM (net, excludes wrong presses): ${finalNetWPM}\n` +
+      `WPM (gross, includes wrong presses): ${finalGrossWPM}\n` +
+      `Accuracy: ${finalAcc}%\n` +
+      `Errors: ${errors}`
+    );
   }
-}
 
-// Reset button
-resetBtn.addEventListener("click", reset);
+  function startTimerIfNeeded() {
+    if (started) return;
+    started = true;
+    startTime = Date.now();
 
-// Initial setup
-body.addEventListener("keydown", handleKeydown);
+    timerInterval = setInterval(() => {
+      const elapsedSec = Math.floor((Date.now() - startTime) / 1000);
+      const timeLeft = Math.max(0, TEST_SECONDS - elapsedSec);
+      timeSpan.textContent = timeLeft;
+      updateStats();
+
+      if (timeLeft <= 0) {
+        finishTest();
+      }
+    }, 200); // smaller tick for snappier updates
+  }
+
+  function handleKeydown(e) {
+    // block everything after finish
+    if (finished) return;
+
+    // If the test ran out of real time (precise check), finish and ignore this key
+    if (started && startTime && (Date.now() - startTime) >= TEST_SECONDS * 1000) {
+      finishTest();
+      return;
+    }
+
+    // start timer on first key press
+    if (!started) startTimerIfNeeded();
+
+    const spans = textDiv.querySelectorAll("span");
+    // guard if text ended
+    if (currentChar >= spans.length) return;
+
+    const currentSpan = spans[currentChar];
+    const expectedRaw = currentSpan.textContent;
+    const expected = normalizeChar(expectedRaw);
+
+    // Backspace handling: let user correct previous char
+    if (e.key === "Backspace") {
+      if (currentChar > 0) {
+        currentChar--;
+        const prevSpan = spans[currentChar];
+        if (prevSpan.classList.contains("incorrect")) errors = Math.max(0, errors - 1);
+        if (prevSpan.classList.contains("correct")) correctChars = Math.max(0, correctChars - 1);
+        prevSpan.classList.remove("correct", "incorrect");
+        highlightCurrent();
+        updateStats();
+      }
+      return;
+    }
+
+    // only printable characters
+    if (e.key.length !== 1) return;
+
+    // normalize typed key
+    const typed = normalizeChar(e.key);
+
+    if (typed.toLowerCase() === expected.toLowerCase()) {
+      currentSpan.classList.add("correct");
+      correctChars++;
+    } else {
+      currentSpan.classList.add("incorrect");
+      errors++;
+    }
+
+    // advance either way (keeps existing UX)
+    currentChar++;
+    highlightCurrent();
+    updateStats();
+  }
+
+  function reset() {
+    // reset state
+    currentChar = 0;
+    errors = 0;
+    correctChars = 0;
+    started = false;
+    finished = false;
+    startTime = null;
+    clearInterval(timerInterval);
+
+    timeSpan.textContent = TEST_SECONDS;
+    wpmSpan.textContent = 0;
+    accSpan.textContent = 100;
+    errSpan.textContent = 0;
+
+    addText();
+    highlightCurrent();
+
+    // reattach handler in case it was removed at finish
+    document.removeEventListener("keydown", handleKeydown);
+    document.addEventListener("keydown", handleKeydown);
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    addText();
+    highlightCurrent();
+    document.addEventListener("keydown", handleKeydown);
+    resetBtn.addEventListener("click", reset);
+  });
