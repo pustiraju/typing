@@ -1,7 +1,7 @@
 
   // Plain ASCII quotes to match keyboard input
   const sampleText =
-    "I have a cure for insomnia. It's probably worth millions of dollars but I'm giving it to you free. It isn't warm milk or chamomile tea. It's list making. List stuff from your life like all your teachers or all the live music you've seen or all the Paul Newman movies you've watched..";
+    "Masti pabi ore paglu, Nachna re full mood e, Nichhe sobai chete pute,Tui keno khabi khute, Hey masti pabi ore paglu,Nachna re full mood e, Nichhe sobai chete pute, Tui keno khabi khute, Le Chance Le, Le Chance Le, Le Chance Chance Chance, Le Paglu Dance Dance Dance Dance. Nach na janle uthan baka Je bole bholbe tal be tale, Hele dule komor ta dulbe, Nach na janle uthan baka, Je bole bholbe tal be tale, Hele dule komor ta dulbe, Le Chance Le, Le Chance Le, Le Chance Chance Chance, Le Paglu Dance Dance Dance, Le Paglu Dance Dance Dance";
 
   const TEST_SECONDS = 60;
 

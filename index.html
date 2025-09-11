@@ -9,17 +9,17 @@
    <style>
     body { font-family: sans-serif; padding: 20px; }
     #text span { padding: 2px; }
-    .correct { color: green;  }
+    .correct { color: blue;  }
     .incorrect { color: red; }
     .current { background: yellow; }
   </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body class="bg-gray-200">
   <div class="max-w-5xl mx-auto p-6">
     <!-- Header -->
-    <header class="text-center mb-8 border-b border-gray-300 pb-4">
-      <h1 class="text-3xl font-bold text-gray-900">Typing</h1>
-      <p class="text-gray-600">Improve your typing skills with practice</p>
+    <header class="text-center mb-8 border-b-2 border-gray-400 pb-4">
+      <h1 class="text-3xl font-bold text-blue-600">Typing</h1>
+      <p class="text-gray-700">Improve your typing speed with practice</p>
     </header>
 
     <!-- Stats -->
@@ -39,13 +39,13 @@
     </div>
 
     <!-- Typing text -->
-    <div class="bg-white p-6 rounded-xl shadow-md mb-6 min-h-[150px]">
-      <div id="text" class="text-lg leading-relaxed text-gray-700"></div>
+    <div class="bg-white  p-6 rounded-xl shadow-md mb-6 min-h-[150px]">
+      <div id="text" class="text-lg font-bold leading-relaxed text-gray-700"></div>
     </div>
 
     <!-- Controls -->
     <div class="flex flex-wrap gap-3 mb-6 justify-center">
-      <button id="reset" class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
+      <button id="reset" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
         Reset
       </button>
     </div>
